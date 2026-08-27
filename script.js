@@ -2,28 +2,105 @@ const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
 const box = 20;
+const gridSize = 20;
 
-let snake = [
-    { x: 200, y: 200 },
-    { x: 180, y: 200 },
-    { x: 160, y: 200 }
-];
+let snake;
+let direction;
+let apple;
+let score;
+let level;
+let gameRunning;
 
-let direction = "RIGHT";
+let snakeColor = "green";
+let difficulty = "easy";
 
-let apple = {
-    x: Math.floor(Math.random() * 20) * box,
-    y: Math.floor(Math.random() * 20) * box
-};
+let highScore = localStorage.getItem("snakeHighScore") || 0;
 
-let score = 0;
-let gameRunning = true;
+document.getElementById("highScore").textContent = highScore;
 
 
-// Keyboard controls
-document.addEventListener("keydown", changeDirection);
+// --------------------
+// START GAME
+// --------------------
 
-function changeDirection(event) {
+function startGame() {
+
+    snake = [
+        { x: 200, y: 200 },
+        { x: 180, y: 200 },
+        { x: 160, y: 200 }
+    ];
+
+    direction = "RIGHT";
+
+    score = 0;
+    level = 1;
+
+    gameRunning = true;
+
+    document.getElementById("score").textContent = score;
+    document.getElementById("level").textContent = level;
+    document.getElementById("gameOver").style.display = "none";
+
+    createApple();
+
+    gameLoop();
+}
+
+
+// --------------------
+// DIFFICULTY
+// --------------------
+
+function changeDifficulty() {
+
+    difficulty = document.getElementById("difficulty").value;
+
+    restartGame();
+}
+
+
+// --------------------
+// SNAKE COLOR
+// --------------------
+
+function changeSnakeColor() {
+
+    snakeColor = document.getElementById("snakeColor").value;
+
+    drawGame();
+}
+
+
+// --------------------
+// MOBILE CONTROLS
+// --------------------
+
+function changeDirectionMobile(newDirection) {
+
+    if (newDirection === "UP" && direction !== "DOWN") {
+        direction = "UP";
+    }
+
+    if (newDirection === "DOWN" && direction !== "UP") {
+        direction = "DOWN";
+    }
+
+    if (newDirection === "LEFT" && direction !== "RIGHT") {
+        direction = "LEFT";
+    }
+
+    if (newDirection === "RIGHT" && direction !== "LEFT") {
+        direction = "RIGHT";
+    }
+}
+
+
+// --------------------
+// KEYBOARD CONTROLS
+// --------------------
+
+document.addEventListener("keydown", function(event) {
 
     if (event.key === "ArrowUp" && direction !== "DOWN") {
         direction = "UP";
@@ -40,64 +117,40 @@ function changeDirection(event) {
     if (event.key === "ArrowRight" && direction !== "LEFT") {
         direction = "RIGHT";
     }
-}
+
+});
 
 
-// Draw battlefield
-function drawBoard() {
+// --------------------
+// APPLE
+// --------------------
 
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+function createApple() {
 
-    // Grid blocks
-    for (let x = 0; x < canvas.width; x += box) {
+    apple = {
+        x: Math.floor(Math.random() * gridSize) * box,
+        y: Math.floor(Math.random() * gridSize) * box
+    };
 
-        for (let y = 0; y < canvas.height; y += box) {
+    // Apple should not appear inside snake
+    for (let part of snake) {
 
-            ctx.strokeStyle = "rgba(0,0,0,0.15)";
-            ctx.strokeRect(x, y, box, box);
+        if (apple.x === part.x && apple.y === part.y) {
+
+            createApple();
+            return;
 
         }
     }
-
-    // Draw snake
-    snake.forEach((part, index) => {
-
-        ctx.fillStyle = index === 0 ? "darkgreen" : "green";
-
-        ctx.fillRect(
-            part.x,
-            part.y,
-            box,
-            box
-        );
-
-        ctx.strokeStyle = "black";
-        ctx.strokeRect(
-            part.x,
-            part.y,
-            box,
-            box
-        );
-    });
+}
 
 
-    // Draw apple
-    ctx.fillStyle = "red";
+// --------------------
+// MOVE SNAKE
+// --------------------
 
-    ctx.beginPath();
+function moveSnake() {
 
-    ctx.arc(
-        apple.x + box / 2,
-        apple.y + box / 2,
-        box / 2 - 2,
-        0,
-        Math.PI * 2
-    );
-
-    ctx.fill();
-
-
-    // Move snake
     let head = {
         x: snake[0].x,
         y: snake[0].y
@@ -121,7 +174,8 @@ function drawBoard() {
     }
 
 
-    // Check wall collision
+    // Wall collision
+
     if (
         head.x < 0 ||
         head.x >= canvas.width ||
@@ -131,10 +185,12 @@ function drawBoard() {
 
         endGame();
         return;
+
     }
 
 
-    // Check self collision
+    // Self collision
+
     for (let part of snake) {
 
         if (
@@ -144,15 +200,17 @@ function drawBoard() {
 
             endGame();
             return;
+
         }
+
     }
 
 
-    // Add new head
     snake.unshift(head);
 
 
     // Apple eaten
+
     if (
         head.x === apple.x &&
         head.y === apple.y
@@ -162,6 +220,40 @@ function drawBoard() {
 
         document.getElementById("score").textContent = score;
 
+
+        // High Score
+
+        if (score > highScore) {
+
+            highScore = score;
+
+            localStorage.setItem(
+                "snakeHighScore",
+                highScore
+            );
+
+            document.getElementById(
+                "highScore"
+            ).textContent = highScore;
+
+        }
+
+
+        // Level up every 5 apples
+
+        let newLevel = Math.floor(score / 5) + 1;
+
+        if (newLevel !== level) {
+
+            level = newLevel;
+
+            document.getElementById(
+                "level"
+            ).textContent = level;
+
+        }
+
+
         createApple();
 
     } else {
@@ -169,89 +261,226 @@ function drawBoard() {
         snake.pop();
 
     }
+
 }
 
 
-// Create new apple
-function createApple() {
+// --------------------
+// DRAW GAME
+// --------------------
 
-    apple.x =
-        Math.floor(Math.random() * 20) * box;
+function drawGame() {
 
-    apple.y =
-        Math.floor(Math.random() * 20) * box;
+    ctx.clearRect(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+    );
 
 
-    // Make sure apple is not inside snake
-    for (let part of snake) {
+    // Battlefield
 
-        if (
-            apple.x === part.x &&
-            apple.y === part.y
-        ) {
+    ctx.fillStyle = "#3fa34d";
 
-            createApple();
-            return;
-        }
+    ctx.fillRect(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+    );
+
+
+    // Grid
+
+    ctx.strokeStyle = "rgba(0,0,0,0.12)";
+
+    for (let x = 0; x <= canvas.width; x += box) {
+
+        ctx.beginPath();
+
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
+
+        ctx.stroke();
+
     }
+
+    for (let y = 0; y <= canvas.height; y += box) {
+
+        ctx.beginPath();
+
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+
+        ctx.stroke();
+
+    }
+
+
+    // Snake
+
+    snake.forEach((part, index) => {
+
+        ctx.fillStyle =
+            index === 0
+                ? "darkgreen"
+                : snakeColor;
+
+        ctx.fillRect(
+            part.x + 1,
+            part.y + 1,
+            box - 2,
+            box - 2
+        );
+
+
+        // Snake eyes
+
+        if (index === 0) {
+
+            ctx.fillStyle = "white";
+
+            ctx.beginPath();
+
+            ctx.arc(
+                part.x + 6,
+                part.y + 6,
+                3,
+                0,
+                Math.PI * 2
+            );
+
+            ctx.fill();
+
+            ctx.beginPath();
+
+            ctx.arc(
+                part.x + 14,
+                part.y + 6,
+                3,
+                0,
+                Math.PI * 2
+            );
+
+            ctx.fill();
+
+        }
+
+    });
+
+
+    // Apple
+
+    ctx.fillStyle = "red";
+
+    ctx.beginPath();
+
+    ctx.arc(
+        apple.x + box / 2,
+        apple.y + box / 2,
+        7,
+        0,
+        Math.PI * 2
+    );
+
+    ctx.fill();
+
+
+    // Apple leaf
+
+    ctx.fillStyle = "darkgreen";
+
+    ctx.fillRect(
+        apple.x + 11,
+        apple.y + 2,
+        5,
+        5
+    );
+
 }
 
 
-// Game over
+// --------------------
+// GAME LOOP
+// --------------------
+
+let lastTime = 0;
+
+function gameLoop(time) {
+
+    if (!gameRunning) {
+        return;
+    }
+
+
+    let speed;
+
+
+    if (difficulty === "easy") {
+        speed = 220;
+    }
+
+    if (difficulty === "medium") {
+        speed = 160;
+    }
+
+    if (difficulty === "hard") {
+        speed = 110;
+    }
+
+
+    // Higher levels = faster
+
+    speed -= (level - 1) * 10;
+
+    if (speed < 60) {
+        speed = 60;
+    }
+
+
+    if (time - lastTime > speed) {
+
+        lastTime = time;
+
+        moveSnake();
+
+        drawGame();
+
+    }
+
+
+    requestAnimationFrame(gameLoop);
+
+}
+
+
+// --------------------
+// GAME OVER
+// --------------------
+
 function endGame() {
 
     gameRunning = false;
 
-    document.getElementById("gameOver").style.display = "block";
+    document.getElementById(
+        "gameOver"
+    ).style.display = "block";
+
 }
 
 
-// Restart game
+// --------------------
+// RESTART
+// --------------------
+
 function restartGame() {
 
-    snake = [
-        { x: 200, y: 200 },
-        { x: 180, y: 200 },
-        { x: 160, y: 200 }
-    ];
+    startGame();
 
-    direction = "RIGHT";
-
-    score = 0;
-
-    document.getElementById("score").textContent = score;
-
-    document.getElementById("gameOver").style.display = "none";
-
-    createApple();
-
-    gameRunning = true;
 }
 
 
-// Game loop
-setInterval(() => {
+// START
 
-    if (gameRunning) {
-        drawBoard();
-    }
-
-}, 250); 
-function changeDirectionMobile(newDirection) {
-
-    if (newDirection === "UP" && direction !== "DOWN") {
-        direction = "UP";
-    }
-
-    if (newDirection === "DOWN" && direction !== "UP") {
-        direction = "DOWN";
-    }
-
-    if (newDirection === "LEFT" && direction !== "RIGHT") {
-        direction = "LEFT";
-    }
-
-    if (newDirection === "RIGHT" && direction !== "LEFT") {
-        direction = "RIGHT";
-    }
-        }
+startGame();
