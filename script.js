@@ -1,3 +1,4 @@
+
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
@@ -7,21 +8,23 @@ const gridSize = 20;
 let snake;
 let direction;
 let apple;
-let score;
-let level;
-let gameRunning;
 
+let score = 0;
+let level = 1;
+let highScore = localStorage.getItem("snakeHighScore") || 0;
+
+let gameRunning = true;
 let snakeColor = "green";
 let difficulty = "easy";
 
-let highScore = localStorage.getItem("snakeHighScore") || 0;
+let obstacles = [];
 
 document.getElementById("highScore").textContent = highScore;
 
 
-// --------------------
+// ====================
 // START GAME
-// --------------------
+// ====================
 
 function startGame() {
 
@@ -36,6 +39,8 @@ function startGame() {
     score = 0;
     level = 1;
 
+    obstacles = [];
+
     gameRunning = true;
 
     document.getElementById("score").textContent = score;
@@ -44,13 +49,15 @@ function startGame() {
 
     createApple();
 
-    gameLoop();
+    lastTime = 0;
+
+    requestAnimationFrame(gameLoop);
 }
 
 
-// --------------------
+// ====================
 // DIFFICULTY
-// --------------------
+// ====================
 
 function changeDifficulty() {
 
@@ -60,9 +67,9 @@ function changeDifficulty() {
 }
 
 
-// --------------------
+// ====================
 // SNAKE COLOR
-// --------------------
+// ====================
 
 function changeSnakeColor() {
 
@@ -72,9 +79,9 @@ function changeSnakeColor() {
 }
 
 
-// --------------------
+// ====================
 // MOBILE CONTROLS
-// --------------------
+// ====================
 
 function changeDirectionMobile(newDirection) {
 
@@ -96,9 +103,9 @@ function changeDirectionMobile(newDirection) {
 }
 
 
-// --------------------
+// ====================
 // KEYBOARD CONTROLS
-// --------------------
+// ====================
 
 document.addEventListener("keydown", function(event) {
 
@@ -121,9 +128,9 @@ document.addEventListener("keydown", function(event) {
 });
 
 
-// --------------------
-// APPLE
-// --------------------
+// ====================
+// CREATE APPLE
+// ====================
 
 function createApple() {
 
@@ -132,22 +139,116 @@ function createApple() {
         y: Math.floor(Math.random() * gridSize) * box
     };
 
-    // Apple should not appear inside snake
+
     for (let part of snake) {
 
-        if (apple.x === part.x && apple.y === part.y) {
-
+        if (
+            apple.x === part.x &&
+            apple.y === part.y
+        ) {
             createApple();
             return;
-
         }
+
     }
+
+
+    for (let obstacle of obstacles) {
+
+        if (
+            apple.x === obstacle.x &&
+            apple.y === obstacle.y
+        ) {
+            createApple();
+            return;
+        }
+
+    }
+
 }
 
 
-// --------------------
+// ====================
+// CREATE OBSTACLES
+// ====================
+
+function createObstacles() {
+
+    obstacles = [];
+
+    // Level 1-2: No obstacles
+
+    if (level < 3) {
+        return;
+    }
+
+
+    // Number of obstacles
+
+    let numberOfObstacles = (level - 2) * 3;
+
+    if (numberOfObstacles > 30) {
+        numberOfObstacles = 30;
+    }
+
+
+    for (let i = 0; i < numberOfObstacles; i++) {
+
+        let obstacle = {
+            x: Math.floor(Math.random() * gridSize) * box,
+            y: Math.floor(Math.random() * gridSize) * box
+        };
+
+
+        // Don't put obstacle on snake
+
+        let onSnake = snake.some(part =>
+            part.x === obstacle.x &&
+            part.y === obstacle.y
+        );
+
+
+        // Don't put obstacle on apple
+
+        let onApple =
+            obstacle.x === apple.x &&
+            obstacle.y === apple.y;
+
+
+        if (onSnake || onApple) {
+
+            i--;
+            continue;
+
+        }
+
+
+        // Don't duplicate obstacles
+
+        let duplicate = obstacles.some(block =>
+            block.x === obstacle.x &&
+            block.y === obstacle.y
+        );
+
+
+        if (duplicate) {
+
+            i--;
+            continue;
+
+        }
+
+
+        obstacles.push(obstacle);
+
+    }
+
+}
+
+
+// ====================
 // MOVE SNAKE
-// --------------------
+// ====================
 
 function moveSnake() {
 
@@ -189,13 +290,30 @@ function moveSnake() {
     }
 
 
-    // Self collision
+    // Snake collision
 
     for (let part of snake) {
 
         if (
             head.x === part.x &&
             head.y === part.y
+        ) {
+
+            endGame();
+            return;
+
+        }
+
+    }
+
+
+    // Obstacle collision
+
+    for (let obstacle of obstacles) {
+
+        if (
+            head.x === obstacle.x &&
+            head.y === obstacle.y
         ) {
 
             endGame();
@@ -221,7 +339,7 @@ function moveSnake() {
         document.getElementById("score").textContent = score;
 
 
-        // High Score
+        // High score
 
         if (score > highScore) {
 
@@ -239,9 +357,10 @@ function moveSnake() {
         }
 
 
-        // Level up every 5 apples
+        // Level increases every 5 apples
 
         let newLevel = Math.floor(score / 5) + 1;
+
 
         if (newLevel !== level) {
 
@@ -250,6 +369,8 @@ function moveSnake() {
             document.getElementById(
                 "level"
             ).textContent = level;
+
+            createObstacles();
 
         }
 
@@ -265,9 +386,9 @@ function moveSnake() {
 }
 
 
-// --------------------
+// ====================
 // DRAW GAME
-// --------------------
+// ====================
 
 function drawGame() {
 
@@ -306,6 +427,7 @@ function drawGame() {
 
     }
 
+
     for (let y = 0; y <= canvas.height; y += box) {
 
         ctx.beginPath();
@@ -318,14 +440,45 @@ function drawGame() {
     }
 
 
+    // Obstacles
+
+    obstacles.forEach(obstacle => {
+
+        ctx.fillStyle = "#444";
+
+        ctx.fillRect(
+            obstacle.x + 1,
+            obstacle.y + 1,
+            box - 2,
+            box - 2
+        );
+
+        ctx.strokeStyle = "#222";
+
+        ctx.strokeRect(
+            obstacle.x + 1,
+            obstacle.y + 1,
+            box - 2,
+            box - 2
+        );
+
+    });
+
+
     // Snake
 
     snake.forEach((part, index) => {
 
-        ctx.fillStyle =
-            index === 0
-                ? "darkgreen"
-                : snakeColor;
+        if (index === 0) {
+
+            ctx.fillStyle = "darkgreen";
+
+        } else {
+
+            ctx.fillStyle = snakeColor;
+
+        }
+
 
         ctx.fillRect(
             part.x + 1,
@@ -335,7 +488,17 @@ function drawGame() {
         );
 
 
-        // Snake eyes
+        ctx.strokeStyle = "#111";
+
+        ctx.strokeRect(
+            part.x + 1,
+            part.y + 1,
+            box - 2,
+            box - 2
+        );
+
+
+        // Eyes
 
         if (index === 0) {
 
@@ -353,12 +516,41 @@ function drawGame() {
 
             ctx.fill();
 
+
             ctx.beginPath();
 
             ctx.arc(
                 part.x + 14,
                 part.y + 6,
                 3,
+                0,
+                Math.PI * 2
+            );
+
+            ctx.fill();
+
+
+            ctx.fillStyle = "black";
+
+            ctx.beginPath();
+
+            ctx.arc(
+                part.x + 6,
+                part.y + 6,
+                1.5,
+                0,
+                Math.PI * 2
+            );
+
+            ctx.fill();
+
+
+            ctx.beginPath();
+
+            ctx.arc(
+                part.x + 14,
+                part.y + 6,
+                1.5,
                 0,
                 Math.PI * 2
             );
@@ -401,9 +593,9 @@ function drawGame() {
 }
 
 
-// --------------------
+// ====================
 // GAME LOOP
-// --------------------
+// ====================
 
 let lastTime = 0;
 
@@ -430,22 +622,25 @@ function gameLoop(time) {
     }
 
 
-    // Higher levels = faster
+    // Higher level = faster
 
     speed -= (level - 1) * 10;
+
 
     if (speed < 60) {
         speed = 60;
     }
 
 
-    if (time - lastTime > speed) {
+    if (time - lastTime >= speed) {
 
         lastTime = time;
 
         moveSnake();
 
-        drawGame();
+        if (gameRunning) {
+            drawGame();
+        }
 
     }
 
@@ -455,9 +650,9 @@ function gameLoop(time) {
 }
 
 
-// --------------------
+// ====================
 // GAME OVER
-// --------------------
+// ====================
 
 function endGame() {
 
@@ -470,9 +665,9 @@ function endGame() {
 }
 
 
-// --------------------
+// ====================
 // RESTART
-// --------------------
+// ====================
 
 function restartGame() {
 
@@ -481,6 +676,8 @@ function restartGame() {
 }
 
 
+// ====================
 // START
+// ====================
 
 startGame();
