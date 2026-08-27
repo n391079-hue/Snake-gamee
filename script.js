@@ -236,7 +236,7 @@ setInterval(() => {
         drawBoard();
     }
 
-}, 120);
+}, 200); 
 function changeDirectionMobile(newDirection) {
 
     if (newDirection === "UP" && direction !== "DOWN") {
