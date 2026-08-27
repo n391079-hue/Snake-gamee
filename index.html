@@ -1,9 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Snake Game</title>
+
     <link rel="stylesheet" href="style.css">
 </head>
 
@@ -12,51 +15,103 @@
     <h1>🐍 Snake Game</h1>
 
     <div class="info">
-        <div>Score: <span id="score">0</span></div>
-        <div>High Score: <span id="highScore">0</span></div>
-        <div>Level: <span id="level">1</span></div>
+
+        <div>
+            Score: <span id="score">0</span>
+        </div>
+
+        <div>
+            High Score: <span id="highScore">0</span>
+        </div>
+
+        <div>
+            Level: <span id="level">1</span>
+        </div>
+
     </div>
+
 
     <div class="settings">
 
         <label>Difficulty:</label>
 
         <select id="difficulty" onchange="changeDifficulty()">
+
             <option value="easy">Easy</option>
+
             <option value="medium">Medium</option>
+
             <option value="hard">Hard</option>
+
         </select>
+
 
         <label>Snake:</label>
 
         <select id="snakeColor" onchange="changeSnakeColor()">
+
             <option value="green">Green</option>
+
             <option value="blue">Blue</option>
+
             <option value="purple">Purple</option>
+
             <option value="orange">Orange</option>
+
         </select>
 
     </div>
 
-    <canvas id="gameCanvas" width="400" height="400"></canvas>
 
-    <h2 id="gameOver">💥 Game Over!</h2>
+    <canvas
+        id="gameCanvas"
+        width="400"
+        height="400">
+    </canvas>
 
-    <button onclick="restartGame()">🔄 Restart Game</button>
+
+    <h2 id="gameOver">
+        💥 Game Over!
+    </h2>
+
+
+    <button
+        id="restartButton"
+        onclick="restartGame()"
+        style="display: none;">
+
+        🔄 Restart Game
+
+    </button>
+
 
     <div class="controls">
 
-        <button onclick="changeDirectionMobile('UP')">⬆️</button>
+        <button onclick="changeDirectionMobile('UP')">
+            ⬆️
+        </button>
 
         <div>
-            <button onclick="changeDirectionMobile('LEFT')">⬅️</button>
-            <button onclick="changeDirectionMobile('DOWN')">⬇️</button>
-            <button onclick="changeDirectionMobile('RIGHT')">➡️</button>
+
+            <button onclick="changeDirectionMobile('LEFT')">
+                ⬅️
+            </button>
+
+            <button onclick="changeDirectionMobile('DOWN')">
+                ⬇️
+            </button>
+
+            <button onclick="changeDirectionMobile('RIGHT')">
+                ➡️
+            </button>
+
         </div>
 
     </div>
 
+
     <script src="script.js"></script>
 
 </body>
+
 </html>
