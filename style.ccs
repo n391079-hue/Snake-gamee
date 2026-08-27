@@ -31,3 +31,13 @@ button {
     cursor: pointer;
     margin-top: 10px;
 }
+.controls {
+    margin-top: 15px;
+}
+
+.controls button {
+    width: 60px;
+    height: 50px;
+    margin: 4px;
+    font-size: 24px;
+}
