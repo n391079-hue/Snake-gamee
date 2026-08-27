@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -18,18 +17,15 @@
     <div class="info">
 
         <div>
-            Score:
-            <span id="score">0</span>
+            Score: <span id="score">0</span>
         </div>
 
         <div>
-            High Score:
-            <span id="highScore">0</span>
+            High Score: <span id="highScore">0</span>
         </div>
 
         <div>
-            Level:
-            <span id="level">1</span>
+            Level: <span id="level">1</span>
         </div>
 
     </div>
@@ -39,36 +35,26 @@
 
         <label>Difficulty:</label>
 
-        <select id="difficulty"
-                onchange="changeDifficulty()">
-
+        <select id="difficulty" onchange="changeDifficulty()">
             <option value="easy">Easy</option>
             <option value="medium">Medium</option>
             <option value="hard">Hard</option>
-
         </select>
 
 
         <label>Snake:</label>
 
-        <select id="snakeColor"
-                onchange="changeSnakeColor()">
-
+        <select id="snakeColor" onchange="changeSnakeColor()">
             <option value="green">Green</option>
             <option value="blue">Blue</option>
             <option value="purple">Purple</option>
             <option value="orange">Orange</option>
-
         </select>
 
     </div>
 
 
-    <canvas
-        id="gameCanvas"
-        width="400"
-        height="400">
-    </canvas>
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
 
 
     <h2 id="gameOver">
@@ -76,19 +62,10 @@
     </h2>
 
 
-    <!-- Restart button -->
-
-    <button
-        id="restartButton"
-        onclick="restartGame()"
-        style="display: none;">
-
+    <button id="restartButton" onclick="restartGame()">
         🔄 Restart Game
-
     </button>
 
-
-    <!-- Mobile controls -->
 
     <div class="controls">
 
@@ -119,4 +96,4 @@
 
 </body>
 
-    </html>
+                </html>
