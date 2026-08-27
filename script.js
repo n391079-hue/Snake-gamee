@@ -237,3 +237,21 @@ setInterval(() => {
     }
 
 }, 120);
+function changeDirectionMobile(newDirection) {
+
+    if (newDirection === "UP" && direction !== "DOWN") {
+        direction = "UP";
+    }
+
+    if (newDirection === "DOWN" && direction !== "UP") {
+        direction = "DOWN";
+    }
+
+    if (newDirection === "LEFT" && direction !== "RIGHT") {
+        direction = "LEFT";
+    }
+
+    if (newDirection === "RIGHT" && direction !== "LEFT") {
+        direction = "RIGHT";
+    }
+        }
